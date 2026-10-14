@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f5ef">
+  <title>Pièce par pièce — Atelier de puzzles</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f4f5ef;
+      --ink: #202b29;
+      --muted: #77817b;
+      --line: #dfe4dc;
+      --green: #25695a;
+      --green-dark: #194d42;
+      --green-pale: #e2eee6;
+      --orange: #e28d5a;
+      --white: #fffefa;
+      --shadow: 0 18px 54px rgba(34, 54, 46, .09);
+      font-family: "DM Sans", sans-serif;
+      font-synthesis: none;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 320px; min-height: 100vh; color: var(--ink); background: var(--paper); }
+    button, input, select { font: inherit; }
+    button { color: inherit; }
+    .page { max-width: 1440px; margin: 0 auto; padding: 0 48px 48px; }
+    .topbar { height: 78px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); }
+    .brand { display: flex; align-items: center; gap: 11px; text-decoration: none; color: inherit; font-weight: 700; letter-spacing: .1px; }
+    .brand-mark { width: 31px; height: 31px; display: grid; place-items: center; border-radius: 10px 10px 10px 3px; color: white; background: var(--green); font-size: 17px; }
+    .top-note { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #77a77e; }
+    .intro { display: flex; justify-content: space-between; align-items: end; padding: 38px 0 27px; gap: 24px; }
+    .eyebrow { margin: 0 0 8px; color: var(--green); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; }
+    h1 { margin: 0; font: 600 clamp(32px, 4vw, 48px)/1.08 "Playfair Display", Georgia, serif; letter-spacing: 0; }
+    .intro-copy { max-width: 390px; margin: 0 0 3px; color: var(--muted); line-height: 1.65; font-size: 14px; }
+    .toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; margin-bottom: 18px; }
+    .tabs { display: flex; gap: 5px; padding: 5px; border: 1px solid var(--line); border-radius: 12px; background: #ecefe8; }
+    .tab { min-height: 39px; padding: 0 15px; border: 0; border-radius: 8px; background: transparent; color: #65716b; cursor: pointer; font-size: 13px; font-weight: 600; transition: background .18s ease, color .18s ease, box-shadow .18s ease; }
+    .tab:hover { color: var(--ink); }
+    .tab[aria-selected="true"] { background: var(--white); color: var(--green-dark); box-shadow: 0 2px 7px #263e3012; }
+    .settings { display: flex; gap: 9px; align-items: center; }
+    .select-wrap { position: relative; }
+    select, .button { height: 42px; border: 1px solid var(--line); border-radius: 9px; background: var(--white); }
+    select { min-width: 118px; padding: 0 32px 0 12px; color: var(--ink); cursor: pointer; font-size: 13px; }
+    .button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 14px; cursor: pointer; font-size: 13px; font-weight: 600; transition: transform .16s ease, background .16s ease; }
+    .button:hover { transform: translateY(-1px); background: #f7f9f3; }
+    .button.primary { border-color: var(--green); background: var(--green); color: white; }
+    .button.primary:hover { background: var(--green-dark); }
+    .button svg { width: 16px; height: 16px; }
+    .workbench { display: grid; grid-template-columns: minmax(0, 1fr) 292px; min-height: 530px; overflow: hidden; border: 1px solid var(--line); border-radius: 15px; background: var(--white); box-shadow: var(--shadow); }
+    .play-area { min-width: 0; padding: 27px 30px 29px; }
+    .play-head { display: flex; justify-content: space-between; align-items: center; min-height: 30px; margin-bottom: 17px; }
+    .play-title { margin: 0; font-size: 14px; font-weight: 700; }
+    .move-count { color: var(--muted); font-size: 12px; }
+    .board-wrap { display: grid; place-items: center; min-height: 425px; padding: 13px; border: 1px dashed #d9dfd6; border-radius: 10px; background-color: #f6f7f2; background-image: radial-gradient(#dfe5dc 1px, transparent 1px); background-size: 16px 16px; }
+    .board { --cols: 3; display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); grid-template-rows: repeat(var(--cols), minmax(0, 1fr)); width: min(100%, 390px); aspect-ratio: 1; overflow: hidden; border: 4px solid white; border-radius: 8px; background: #e9ede7; box-shadow: 0 6px 18px #172d2420; }
+    .cell { position: relative; min-width: 0; min-height: 0; overflow: hidden; border: 1px solid #ffffff8a; background-color: #edf0eb; background-repeat: no-repeat; background-size: calc(var(--cols) * 100%) calc(var(--cols) * 100%); transition: filter .15s ease, transform .2s ease; }
+    .cell.empty { background: #e4e9e2; box-shadow: inset 0 2px 12px #253b2b0d; }
+    .cell.target { border: 1px dashed #b8c6b9; background-color: #eef1eb; }
+    .flat-tile { cursor: grab; }
+    .flat-tile:active { cursor: grabbing; }
+    .flat-tile.dragging { opacity: .4; }
+    .flat-tile.selected { z-index: 2; outline: 3px solid var(--orange); outline-offset: -3px; }
+    .cell.drop-ready { outline: 3px solid var(--orange); outline-offset: -4px; }
+    .slide-tile { cursor: pointer; }
+    .slide-tile:hover { filter: brightness(1.1); z-index: 1; }
+    .rotate-tile { cursor: pointer; }
+    .rotate-tile:hover { filter: brightness(1.09); }
+    .rotation { position: absolute; inset: 0; background-image: inherit; background-position: inherit; background-size: inherit; background-repeat: inherit; transition: transform .24s cubic-bezier(.2,.8,.2,1); }
+    .sidebar { display: flex; flex-direction: column; min-width: 0; padding: 25px 21px; border-left: 1px solid var(--line); background: #fbfcf8; }
+    .side-heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; }
+    .side-heading h2 { margin: 0; font: 600 19px/1.25 "Playfair Display", Georgia, serif; }
+    .tile-count { padding: 4px 8px; border-radius: 20px; background: var(--green-pale); color: var(--green-dark); font-size: 11px; font-weight: 700; }
+    .side-description { min-height: 39px; margin: 0 0 17px; color: var(--muted); font-size: 12px; line-height: 1.55; }
+    .tray { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; align-content: start; min-height: 172px; padding: 10px; border: 1px dashed #d9dfd6; border-radius: 9px; background: #f4f6f1; }
+    .tray .cell { width: 100%; aspect-ratio: 1; border-radius: 4px; box-shadow: 0 2px 5px #26382c12; }
+    .tray .cell:hover { transform: translateY(-2px); }
+    .tray-note { grid-column: 1 / -1; align-self: center; padding: 20px 6px; color: #9aa39c; text-align: center; font-size: 12px; }
+    .image-control { margin-top: auto; padding-top: 22px; }
+    .image-preview { position: relative; height: 116px; overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: #e8ede6; }
+    .image-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .image-label { position: absolute; right: 8px; bottom: 8px; padding: 5px 8px; border-radius: 5px; background: #fffefaed; color: #47574d; font-size: 10px; font-weight: 600; }
+    .upload-button { width: 100%; margin-top: 9px; }
+    .hidden-input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; clip-path: inset(50%); }
+    .win-message { position: fixed; z-index: 5; left: 50%; bottom: 24px; display: flex; align-items: center; gap: 10px; max-width: calc(100vw - 32px); padding: 14px 20px; border: 1px solid #cce0d0; border-radius: 12px; background: #fffefa; box-shadow: 0 12px 36px #1a31262b; font-size: 14px; font-weight: 600; transform: translate(-50%, 130px); opacity: 0; transition: transform .35s cubic-bezier(.2,.8,.2,1), opacity .25s ease; }
+    .win-message.visible { transform: translate(-50%, 0); opacity: 1; }
+    .win-icon { display: grid; width: 26px; height: 26px; place-items: center; border-radius: 50%; background: var(--green-pale); color: var(--green); }
+    .footer { display: flex; justify-content: space-between; padding-top: 16px; color: #89928b; font-size: 11px; }
+    @keyframes enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .workbench { animation: enter .45s ease both; }
+    @media (max-width: 900px) {
+      .page { padding: 0 25px 30px; }
+      .workbench { grid-template-columns: minmax(0, 1fr) 255px; }
+      .play-area { padding: 24px 20px; }
+      .sidebar { padding: 23px 17px; }
+      .board-wrap { min-height: 390px; }
+    }
+    @media (max-width: 680px) {
+      .page { padding: 0 16px 24px; }
+      .topbar { height: 65px; }
+      .top-note { font-size: 11px; }
+      .intro { display: block; padding: 30px 0 22px; }
+      .intro-copy { margin-top: 11px; font-size: 13px; }
+      .toolbar { align-items: stretch; }
+      .tabs { width: 100%; overflow-x: auto; }
+      .tab { flex: 1 0 auto; padding: 0 11px; font-size: 12px; }
+      .settings { width: 100%; }
+      .settings .button { flex: 1; }
+      .workbench { grid-template-columns: 1fr; }
+      .play-area { padding: 20px 16px 16px; }
+      .board-wrap { min-height: 0; padding: 12px; }
+      .board { width: min(100%, 420px); }
+      .sidebar { display: grid; grid-template-columns: minmax(0, 1fr) minmax(125px, .8fr); gap: 0 15px; padding: 17px 16px; border-top: 1px solid var(--line); border-left: 0; }
+      .tray-section { grid-row: 1 / span 3; }
+      .side-description { min-height: unset; }
+      .tray { min-height: 148px; }
+      .image-control { padding-top: 0; }
+      .image-preview { height: 88px; }
+      .upload-button { padding: 0 8px; font-size: 12px; }
+      .footer { font-size: 10px; }
+    }
+    @media (max-width: 420px) {
+      .sidebar { grid-template-columns: 1fr; }
+      .tray-section { grid-row: auto; }
+      .tray { grid-template-columns: repeat(4, minmax(0, 1fr)); min-height: 120px; }
+      .image-control { display: grid; grid-template-columns: 90px 1fr; align-items: center; gap: 10px; padding-top: 14px; }
+      .upload-button { margin-top: 0; }
+      .footer span:last-child { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Pièce par pièce, accueil">
+        <span class="brand-mark" aria-hidden="true">✳</span><span>pièce par pièce</span>
+      </a>
+      <div class="top-note"><span class="status-dot" aria-hidden="true"></span>Votre petite pause créative</div>
+    </header>
+
+    <main>
+      <section class="intro" aria-labelledby="page-title">
+        <div><p class="eyebrow">L'atelier des puzzles</p><h1 id="page-title">Une image, trois façons<br>de la retrouver.</h1></div>
+        <p class="intro-copy">Prenez le temps de regarder, de déplacer, de faire tourner. Une image familière devient un nouveau petit défi.</p>
+      </section>
+
+      <div class="toolbar">
+        <nav class="tabs" aria-label="Mode de jeu" role="tablist">
+          <button class="tab" type="button" role="tab" aria-selected="true" data-mode="flat">Assemblage</button>
+          <button class="tab" type="button" role="tab" aria-selected="false" data-mode="slide">Taquin</button>
+          <button class="tab" type="button" role="tab" aria-selected="false" data-mode="rotate">Rotation</button>
+        </nav>
+        <div class="settings">
+          <label class="select-wrap"><span class="hidden-input">Taille de la grille</span><select id="grid-size" aria-label="Taille de la grille"><option value="3">3 × 3 · Facile</option><option value="4">4 × 4 · Corsé</option></select></label>
+          <button class="button primary" id="restart" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M5.6 9a7 7 0 0 1 11.6-2L20 12M4 12l2.8 5a7 7 0 0 0 11.6-2"/></svg>
+            Mélanger
+          </button>
+        </div>
+      </div>
+
+      <section class="workbench" aria-label="Plateau de jeu">
+        <div class="play-area">
+          <div class="play-head"><h2 class="play-title" id="mode-title">Replacez chaque pièce à sa place</h2><span class="move-count" id="moves">0 mouvement</span></div>
+          <div class="board-wrap"><div class="board" id="board" aria-label="Grille du puzzle"></div></div>
+        </div>
+        <aside class="sidebar">
+          <section class="tray-section" id="tray-section" aria-label="Réserve de pièces">
+            <div class="side-heading"><h2 id="side-title">À assembler</h2><span class="tile-count" id="tile-count">9 pièces</span></div>
+            <p class="side-description" id="side-description">Faites glisser les pièces vers leur emplacement. Elles s'aimantent quand elles sont bien placées.</p>
+            <div class="tray" id="tray" aria-label="Réserve"></div>
+          </section>
+          <section class="image-control" aria-label="Image du puzzle">
+            <div class="image-preview"><img id="preview" alt="Aperçu de l’image du puzzle"><span class="image-label">Image du puzzle</span></div>
+            <input class="hidden-input" type="file" id="image-upload" accept="image/*">
+            <button class="button upload-button" id="upload-button" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4m-5 5 5-5 5 5"/><path d="M5 14v5h14v-5"/></svg>
+              Choisir une image
+            </button>
+          </section>
+        </aside>
+      </section>
+    </main>
+    <footer class="footer"><span>Un jeu calme, à votre rythme.</span><span>Vos images restent dans votre navigateur.</span></footer>
+  </div>
+  <div class="win-message" id="win-message" role="status" aria-live="polite"><span class="win-icon">✓</span><span>Bravo ! L'image a retrouvé sa place.</span></div>
+
+  <script>
+    (() => {
+      const imageUrl = 'https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=1200&h=1200&q=85';
+      const board = document.querySelector('#board');
+      const tray = document.querySelector('#tray');
+      const traySection = document.querySelector('#tray-section');
+      const modeTitle = document.querySelector('#mode-title');
+      const sideTitle = document.querySelector('#side-title');
+      const sideDescription = document.querySelector('#side-description');
+      const moveLabel = document.querySelector('#moves');
+      const tileCount = document.querySelector('#tile-count');
+      const winMessage = document.querySelector('#win-message');
+      const imageUpload = document.querySelector('#image-upload');
+      const preview = document.querySelector('#preview');
+      const sizeSelect = document.querySelector('#grid-size');
+      const modeCopy = {
+        flat: ['Replacez chaque pièce à sa place', 'À assembler', 'Faites glisser les pièces vers leur emplacement. Elles s’aimantent quand elles sont bien placées.'],
+        slide: ['Libérez la case vide', 'Le taquin', 'Touchez une pièce voisine de la case vide pour la faire glisser.'],
+        rotate: ['Retrouvez le bon sens', 'À faire tourner', 'Cliquez sur les morceaux qui ont pivoté pour rétablir l’image.']
+      };
+      const state = { mode: 'flat', size: 3, image: '', flatBoard: [], flatTray: [], slide: [], rotations: [], moves: 0, dragged: null, selectedTile: null, solved: false, winTimer: null };
+
+      function shuffle(array) {
+        for (let index = array.length - 1; index > 0; index--) {
+          const other = Math.floor(Math.random() * (index + 1));
+          [array[index], array[other]] = [array[other], array[index]];
+        }
+        return array;
+      }
+
+      function setImageBackground(element, tileIndex) {
+        const row = Math.floor(tileIndex / state.size);
+        const column = tileIndex % state.size;
+        element.style.backgroundImage = `url("${state.image}")`;
+        element.style.backgroundPosition = `${state.size === 1 ? 0 : column / (state.size - 1) * 100}% ${state.size === 1 ? 0 : row / (state.size - 1) * 100}%`;
+      }
+
+      function makeTile(index, extraClass = '') {
+        const tile = document.createElement('div');
+        tile.className = `cell ${extraClass}`;
+        tile.dataset.tile = String(index);
+        tile.setAttribute('aria-label', `Pièce ${index + 1}`);
+        setImageBackground(tile, index);
+        return tile;
+      }
+
+      function setMoves(value) {
+        state.moves = value;
+        moveLabel.textContent = `${value} mouvement${value === 1 ? '' : 's'}`;
+      }
+
+      function notifyWin() {
+        if (state.solved) return;
+        state.solved = true;
+        winMessage.classList.add('visible');
+        clearTimeout(state.winTimer);
+        state.winTimer = setTimeout(() => winMessage.classList.remove('visible'), 3200);
+      }
+
+      function hideWin() {
+        state.solved = false;
+        winMessage.classList.remove('visible');
+        clearTimeout(state.winTimer);
+      }
+
+      function renderFlat() {
+        board.replaceChildren();
+        tray.replaceChildren();
+        state.flatBoard.forEach((tileIndex, position) => {
+          const slot = document.createElement('div');
+          slot.className = `cell ${tileIndex === null ? 'target' : ''}`;
+          slot.dataset.position = String(position);
+          slot.addEventListener('click', () => {
+            if (state.selectedTile === null) return;
+            state.dragged = state.selectedFrom
+              ? { tile: state.selectedTile, from: 'board', position: state.selectedFrom.position }
+              : { tile: state.selectedTile, from: 'tray' };
+            dropFlatTile(position);
+          });
+          if (tileIndex !== null) {
+            const tile = makeTile(tileIndex, 'flat-tile');
+            tile.draggable = true;
+            tile.tabIndex = 0;
+            tile.setAttribute('role', 'button');
+            const selected = state.selectedTile === tileIndex && state.selectedFrom?.position === position;
+            tile.setAttribute('aria-pressed', String(selected));
+            tile.classList.toggle('selected', selected);
+            tile.addEventListener('click', event => {
+              event.stopPropagation();
+              selectFlatTile(tileIndex, tile);
+            });
+            tile.addEventListener('dragstart', event => {
+              state.dragged = { tile: tileIndex, from: 'board', position };
+              event.dataTransfer.setData('text/plain', String(tileIndex));
+              event.dataTransfer.effectAllowed = 'move';
+              requestAnimationFrame(() => tile.classList.add('dragging'));
+            });
+            tile.addEventListener('dragend', () => tile.classList.remove('dragging'));
+            slot.append(tile);
+          }
+          slot.addEventListener('dragover', event => { event.preventDefault(); slot.classList.add('drop-ready'); });
+          slot.addEventListener('dragleave', () => slot.classList.remove('drop-ready'));
+          slot.addEventListener('drop', event => {
+            event.preventDefault();
+            slot.classList.remove('drop-ready');
+            dropFlatTile(position);
+          });
+          board.append(slot);
+        });
+        state.flatTray.forEach(tileIndex => {
+          const tile = makeTile(tileIndex, 'flat-tile');
+          tile.draggable = true;
+          tile.tabIndex = 0;
+          tile.setAttribute('role', 'button');
+          tile.setAttribute('aria-pressed', String(state.selectedTile === tileIndex));
+          tile.classList.toggle('selected', state.selectedTile === tileIndex);
+          tile.addEventListener('click', () => selectFlatTile(tileIndex, tile));
+          tile.addEventListener('keydown', event => {
+            if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectFlatTile(tileIndex, tile); }
+          });
+          tile.addEventListener('dragstart', event => {
+            state.dragged = { tile: tileIndex, from: 'tray' };
+            event.dataTransfer.setData('text/plain', String(tileIndex));
+            event.dataTransfer.effectAllowed = 'move';
+            requestAnimationFrame(() => tile.classList.add('dragging'));
+          });
+          tile.addEventListener('dragend', () => tile.classList.remove('dragging'));
+          tray.append(tile);
+        });
+        tray.ondragover = event => event.preventDefault();
+        tray.ondrop = event => {
+          event.preventDefault();
+          const target = state.dragged;
+          if (!target || target.from !== 'board') return;
+          state.flatBoard[target.position] = null;
+          state.flatTray.push(target.tile);
+          state.dragged = null;
+          setMoves(state.moves + 1);
+          renderFlat();
+        };
+        if (!state.flatTray.length) tray.innerHTML = '<span class="tray-note">Toutes les pièces sont posées</span>';
+      }
+
+      function selectFlatTile(tileIndex, element) {
+        const isBoard = Boolean(element.closest('#board'));
+        const position = isBoard ? Number(element.parentElement.dataset.position) : null;
+        const alreadySelected = state.selectedTile === tileIndex && state.selectedFrom?.position === position;
+        state.selectedTile = alreadySelected ? null : tileIndex;
+        state.selectedFrom = alreadySelected || !isBoard ? null : { position };
+        tray.querySelectorAll('.flat-tile').forEach(tile => {
+          const selected = !state.selectedFrom && Number(tile.dataset.tile) === state.selectedTile;
+          tile.classList.toggle('selected', selected);
+          tile.setAttribute('aria-pressed', String(selected));
+        });
+        board.querySelectorAll('.flat-tile').forEach(tile => {
+          const selected = state.selectedFrom?.position === Number(tile.parentElement.dataset.position);
+          tile.classList.toggle('selected', selected);
+          tile.setAttribute('aria-pressed', String(selected));
+        });
+      }
+
+      function dropFlatTile(position) {
+        const dragged = state.dragged;
+        if (!dragged) return;
+        const droppedOn = state.flatBoard[position];
+        if (dragged.from === 'tray') {
+          if (droppedOn !== null) return;
+          state.flatTray = state.flatTray.filter(tile => tile !== dragged.tile);
+          state.flatBoard[position] = dragged.tile;
+          if (position !== dragged.tile) {
+            state.flatBoard[position] = null;
+            state.flatTray.push(dragged.tile);
+            state.flatTray = shuffle(state.flatTray);
+          }
+        } else {
+          if (position === dragged.position) return;
+          state.flatBoard[dragged.position] = droppedOn;
+          state.flatBoard[position] = dragged.tile;
+        }
+        state.dragged = null;
+        state.selectedTile = null;
+        setMoves(state.moves + 1);
+        renderFlat();
+        if (state.flatBoard.every((tile, index) => tile === index)) notifyWin();
+      }
+
+      function renderSlide() {
+        board.replaceChildren();
+        tray.replaceChildren();
+        state.slide.forEach((tileIndex, position) => {
+          if (tileIndex === null) {
+            const empty = document.createElement('div');
+            empty.className = 'cell empty';
+            empty.setAttribute('aria-label', 'Case vide');
+            board.append(empty);
+            return;
+          }
+          const tile = makeTile(tileIndex, 'slide-tile');
+          tile.tabIndex = 0;
+          tile.setAttribute('role', 'button');
+          tile.addEventListener('click', () => moveSlideTile(position));
+          tile.addEventListener('keydown', event => {
+            if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); moveSlideTile(position); }
+          });
+          board.append(tile);
+        });
+      }
+
+      function moveSlideTile(position) {
+        const empty = state.slide.indexOf(null);
+        const row = Math.floor(position / state.size), column = position % state.size;
+        const emptyRow = Math.floor(empty / state.size), emptyColumn = empty % state.size;
+        if (Math.abs(row - emptyRow) + Math.abs(column - emptyColumn) !== 1) return;
+        [state.slide[position], state.slide[empty]] = [state.slide[empty], state.slide[position]];
+        setMoves(state.moves + 1);
+        renderSlide();
+        if (state.slide.every((tile, index) => tile === (index === state.size * state.size - 1 ? null : index))) notifyWin();
+      }
+
+      function renderRotate() {
+        board.replaceChildren();
+        tray.replaceChildren();
+        state.rotations.forEach((turns, index) => {
+          const tile = makeTile(index, 'rotate-tile');
+          const face = document.createElement('div');
+          face.className = 'rotation';
+          face.style.transform = `rotate(${turns * 90}deg)`;
+          tile.append(face);
+          tile.tabIndex = 0;
+          tile.setAttribute('role', 'button');
+          tile.setAttribute('aria-label', `Tourner la pièce ${index + 1}, orientation ${turns * 90} degrés`);
+          const turn = () => {
+            state.rotations[index] = (state.rotations[index] + 1) % 4;
+            face.style.transform = `rotate(${state.rotations[index] * 90}deg)`;
+            tile.setAttribute('aria-label', `Tourner la pièce ${index + 1}, orientation ${state.rotations[index] * 90} degrés`);
+            setMoves(state.moves + 1);
+            if (state.rotations.every(value => value === 0)) notifyWin();
+          };
+          tile.addEventListener('click', turn);
+          tile.addEventListener('keydown', event => {
+            if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); turn(); }
+          });
+          board.append(tile);
+        });
+      }
+
+      function render() {
+        board.style.setProperty('--cols', state.size);
+        board.setAttribute('aria-label', `Puzzle ${state.size} par ${state.size}`);
+        const [title, trayHeading, description] = modeCopy[state.mode];
+        modeTitle.textContent = title;
+        sideTitle.textContent = trayHeading;
+        sideDescription.textContent = description;
+        traySection.hidden = state.mode !== 'flat';
+        tileCount.textContent = `${state.size * state.size} pièces`;
+        if (state.mode === 'flat') renderFlat();
+        if (state.mode === 'slide') renderSlide();
+        if (state.mode === 'rotate') renderRotate();
+      }
+
+      function resetFlat() {
+        const count = state.size * state.size;
+        state.flatBoard = Array(count).fill(null);
+        state.flatTray = shuffle(Array.from({ length: count }, (_, index) => index));
+      }
+
+      function resetSlide() {
+        const count = state.size * state.size;
+        state.slide = Array.from({ length: count }, (_, index) => index === count - 1 ? null : index);
+        let empty = count - 1;
+        let previous = -1;
+        for (let step = 0; step < count * 35; step++) {
+          const row = Math.floor(empty / state.size), column = empty % state.size;
+          const neighbors = [];
+          if (row > 0) neighbors.push(empty - state.size);
+          if (row < state.size - 1) neighbors.push(empty + state.size);
+          if (column > 0) neighbors.push(empty - 1);
+          if (column < state.size - 1) neighbors.push(empty + 1);
+          const choices = neighbors.filter(position => position !== previous);
+          const next = choices[Math.floor(Math.random() * choices.length)];
+          [state.slide[empty], state.slide[next]] = [state.slide[next], state.slide[empty]];
+          previous = empty;
+          empty = next;
+        }
+      }
+
+      function resetRotate() {
+        state.rotations = Array.from({ length: state.size * state.size }, () => Math.floor(Math.random() * 4));
+        if (state.rotations.every(value => value === 0)) state.rotations[0] = 1;
+      }
+
+      function restart() {
+        hideWin();
+        state.dragged = null;
+        state.selectedTile = null;
+        state.selectedFrom = null;
+        setMoves(0);
+        if (state.mode === 'flat') resetFlat();
+        if (state.mode === 'slide') resetSlide();
+        if (state.mode === 'rotate') resetRotate();
+        render();
+      }
+
+      document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(item => item.setAttribute('aria-selected', String(item === tab)));
+        state.mode = tab.dataset.mode;
+        restart();
+      }));
+
+      sizeSelect.addEventListener('change', () => {
+        state.size = Number(sizeSelect.value);
+        restart();
+      });
+      document.querySelector('#restart').addEventListener('click', restart);
+      document.querySelector('#upload-button').addEventListener('click', () => imageUpload.click());
+      imageUpload.addEventListener('change', () => {
+        const file = imageUpload.files && imageUpload.files[0];
+        if (!file || !file.type.startsWith('image/')) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          const uploadedImage = new Image();
+          uploadedImage.onload = () => {
+            const side = Math.min(uploadedImage.naturalWidth, uploadedImage.naturalHeight);
+            const canvas = document.createElement('canvas');
+            canvas.width = canvas.height = 1200;
+            const context = canvas.getContext('2d');
+            context.drawImage(uploadedImage, (uploadedImage.naturalWidth - side) / 2, (uploadedImage.naturalHeight - side) / 2, side, side, 0, 0, 1200, 1200);
+            state.image = canvas.toDataURL('image/png');
+            preview.src = state.image;
+            restart();
+          };
+          uploadedImage.src = String(reader.result);
+        };
+        reader.readAsDataURL(file);
+      });
+
+      state.image = imageUrl;
+      preview.src = imageUrl;
+      preview.addEventListener('error', () => {
+        preview.alt = 'Aperçu indisponible : choisissez une image depuis votre appareil.';
+      });
+      resetFlat();
+      render();
+    })();
+  </script>
+</body>
+</html>
